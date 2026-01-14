@@ -1,4 +1,5 @@
-import { useState, useRef, DragEvent, ChangeEvent, FormEvent } from 'react';
+import { useState, useRef } from 'react';
+import type { DragEvent, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
@@ -92,7 +93,7 @@ export function Upload() {
     try {
       // Upload file to Supabase Storage
       const fileName = file.name;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('audio')
         .upload(fileName, file, {
           cacheControl: '3600',
