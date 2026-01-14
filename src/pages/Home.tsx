@@ -66,6 +66,7 @@ export function Home() {
   const handleAudioPlay = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     if (currentAudioRef.current && currentAudioRef.current !== e.currentTarget) {
       currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
     }
     currentAudioRef.current = e.currentTarget;
   };
