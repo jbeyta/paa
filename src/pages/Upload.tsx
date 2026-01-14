@@ -145,7 +145,7 @@ export function Upload() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="audio/*"
+              accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
               onChange={handleChange}
               className={styles.fileInput}
             />
