@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, type AudioFile } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
@@ -16,6 +16,7 @@ export function Home() {
   const [totalCount, setTotalCount] = useState(0);
   const { showToast } = useToast();
   const { user } = useAuth();
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     fetchAudioFiles();
@@ -62,6 +63,13 @@ export function Home() {
     setPage(1); // Reset to first page when changing page size
   };
 
+  const handleAudioPlay = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    if (currentAudioRef.current && currentAudioRef.current !== e.currentTarget) {
+      currentAudioRef.current.pause();
+    }
+    currentAudioRef.current = e.currentTarget;
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -89,7 +97,12 @@ export function Home() {
               <span className={styles.duration}>
                 {formatDuration(file.duration)}
               </span>
-              <audio controls className={styles.player} src={file.file_url}>
+              <audio 
+                controls 
+                className={styles.player} 
+                src={file.file_url}
+                onPlay={handleAudioPlay}
+              >
                 Your browser does not support the audio element.
               </audio>
             </div>
