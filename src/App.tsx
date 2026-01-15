@@ -2,11 +2,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { Header } from './components/Header';
-import { Home } from './pages/Home';
-import { AudioDetail } from './pages/AudioDetail';
-import { Login } from './pages/Login';
-import { Upload } from './pages/Upload';
+import { Header } from './components/Header.tsx';
+import { Home } from './pages/Home.tsx';
+import { AudioDetail } from './pages/AudioDetail.tsx';
+import { Login } from './pages/Login.tsx';
+import { Upload } from './pages/Upload.tsx';
 import './App.scss';
 
 function App() {

@@ -11,6 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .logo {
@@ -20,20 +21,26 @@
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: block;
+}
+
+.logoImage {
+  max-width: 200px;
+  height: auto;
+  display: block;
 }
 
 .nav {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .user {
   color: #2a2a2a;
   font-size: 0.875rem;
   letter-spacing: 0.05em;
-  border: 1px solid #2a2a2a;
-  padding: 0.5rem 1rem;
 }
 
 .uploadButton {
@@ -47,6 +54,12 @@
   
   &:hover {
     background: #1a1a1a;
+  }
+
+  @media (max-width: 768px) {
+    flex-basis: 100%;
+    text-align: center;
+    order: 3;
   }
 }
 
@@ -63,12 +76,12 @@
 .signOut {
   background: none;
   border: none;
-  color: #666;
+  color: #2a2a2a;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.875rem;
-  text-decoration: underline;
+  font-size: 1.5rem;
   padding: 0;
+  line-height: 1;
   
   &:hover {
     color: #999;

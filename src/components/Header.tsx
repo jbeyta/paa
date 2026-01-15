@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Header.module.scss';
+import logo from '../assets/images/paa.png';
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -15,17 +16,17 @@ export function Header() {
     <header className={styles.header}>
       <div className={styles.container}>
         <Link to="/" className={styles.logo}>
-          Public Audio Archive
+          <img src={logo} alt="Public Audio Archive" className={styles.logoImage} />
         </Link>
         <nav className={styles.nav}>
           {user ? (
             <>
-              <span className={styles.user}>USER: {user.email?.split('@')[0].toUpperCase()}</span>
               <Link to="/upload" className={styles.uploadButton}>
                 ↑ UPLOAD
               </Link>
+              <span className={styles.user}>{user.email?.split('@')[0].toUpperCase()}</span>
               <button onClick={handleSignOut} className={styles.signOut}>
-                Sign Out
+                →
               </button>
             </>
           ) : (
