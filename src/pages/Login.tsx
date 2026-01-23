@@ -74,7 +74,7 @@ export function Login() {
           </div>
           <button
             type="submit"
-            className={styles.button}
+            className="btn btn-primary"
             disabled={loading}
           >
             {loading ? 'Sending...' : 'Send Magic Link'}

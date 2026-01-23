@@ -185,7 +185,7 @@ export function Upload() {
           {file && (
             <button
               type="submit"
-              className={styles.button}
+              className="btn btn-primary"
               disabled={uploading || !title || duration === null}
             >
               {uploading ? 'Uploading...' : 'Upload'}

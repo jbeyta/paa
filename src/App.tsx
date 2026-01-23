@@ -7,6 +7,7 @@ import { Home } from './pages/Home.tsx';
 import { AudioDetail } from './pages/AudioDetail.tsx';
 import { Login } from './pages/Login.tsx';
 import { Upload } from './pages/Upload.tsx';
+import { Edit } from './pages/Edit.tsx';
 import './App.scss';
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Upload />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/audio/:id/edit"
+                  element={
+                    <ProtectedRoute>
+                      <Edit />
                     </ProtectedRoute>
                   }
                 />

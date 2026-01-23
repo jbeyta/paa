@@ -45,12 +45,6 @@ export function Home() {
     }
   };
 
-  const formatDuration = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const totalPages = Math.ceil(totalCount / pageSize);
 
   const handlePageChange = (newPage: number) => {
@@ -95,9 +89,6 @@ export function Home() {
               <Link to={`/audio/${file.id}`} className={styles.name}>
                 {file.title}
               </Link>
-              <span className={styles.duration}>
-                {formatDuration(file.duration)}
-              </span>
               <audio 
                 controls 
                 className={styles.player} 
@@ -121,7 +112,7 @@ export function Home() {
             <button
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
-              className={styles.pageButton}
+              className="btn btn-outline"
             >
               Previous
             </button>
@@ -133,7 +124,7 @@ export function Home() {
             <button
               onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
-              className={styles.pageButton}
+              className="btn btn-outline"
             >
               Next
             </button>

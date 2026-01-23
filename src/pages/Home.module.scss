@@ -116,25 +116,6 @@
   align-items: center;
 }
 
-.pageButton {
-  background: none;
-  border: 1px solid #e0e0e0;
-  color: #2a2a2a;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.875rem;
-  
-  &:hover:not(:disabled) {
-    border-color: #2a2a2a;
-  }
-  
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-}
-
 .pageInfo {
   color: #2a2a2a;
   font-size: 0.875rem;

@@ -11,6 +11,19 @@ body {
   line-height: 1.6;
 }
 
+/* Remove default link colors (except for buttons) */
+a:not(.btn) {
+  color: inherit;
+  
+  &:visited {
+    color: inherit;
+  }
+  
+  &:active {
+    color: inherit;
+  }
+}
+
 .app {
 
 }
@@ -56,6 +69,70 @@ body {
   border-left: 4px solid #666;
 }
 
+/* Button Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: #2a2a2a;
+  color: #ffffff;
+  
+  &:hover:not(:disabled) {
+    background: #1a1a1a;
+    color: #e0e0e0;
+  }
+}
+
+.btn-danger {
+  background: #d32f2f;
+  color: #ffffff;
+  
+  &:hover:not(:disabled) {
+    background: #b71c1c;
+    color: #e0e0e0;
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  
+  &:hover:not(:disabled) {
+    border-color: #2a2a2a;
+    color: #2a2a2a;
+  }
+}
+
+.btn-text {
+  background: none;
+  color: #2a2a2a;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  
+  &:hover:not(:disabled) {
+    color: #999;
+  }
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
@@ -75,5 +152,16 @@ body {
   
   .toast {
     min-width: auto;
+  }
+
+  /* Upload button on mobile */
+  .btn-primary {
+    @media (max-width: 768px) {
+      &[href*=\"upload\"] {
+        flex-basis: 100%;
+        text-align: center;
+        order: 3;
+      }
+    }
   }
 }

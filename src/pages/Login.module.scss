@@ -57,26 +57,6 @@
   }
 }
 
-.button {
-  padding: 0.75rem 1.5rem;
-  background: #2a2a2a;
-  color: #ffffff;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 500;
-  
-  &:hover:not(:disabled) {
-    background: #1a1a1a;
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
 @media (max-width: 768px) {
   .container {
     padding: 2rem 1rem;

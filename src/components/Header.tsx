@@ -21,11 +21,11 @@ export function Header() {
         <nav className={styles.nav}>
           {user ? (
             <>
-              <Link to="/upload" className={styles.uploadButton}>
+              <Link to="/upload" className="btn btn-primary">
                 ↑ UPLOAD
               </Link>
               <span className={styles.user}>{user.email?.split('@')[0].toUpperCase()}</span>
-              <button onClick={handleSignOut} className={styles.signOut}>
+              <button onClick={handleSignOut} className="btn btn-text">
                 →
               </button>
             </>

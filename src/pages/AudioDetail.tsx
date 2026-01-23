@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase, type AudioFile } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import styles from './AudioDetail.module.scss';
 
 export function AudioDetail() {
   const { id } = useParams<{ id: string }>();
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
@@ -49,6 +53,50 @@ export function AudioDetail() {
     });
   };
 
+  const handleDelete = async () => {
+    if (!audioFile || !id) return;
+
+    const confirmed = confirm('Are you sure you want to delete this audio file? This action cannot be undone.');
+    
+    if (!confirmed) return;
+
+    setDeleting(true);
+
+    try {
+      // Extract filename from file_url
+      const url = new URL(audioFile.file_url);
+      const pathParts = url.pathname.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+
+      // Delete from storage first
+      const { error: storageError } = await supabase.storage
+        .from('audio')
+        .remove([fileName]);
+
+      if (storageError) {
+        throw new Error('Failed to delete file from storage');
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('audio_files')
+        .delete()
+        .eq('id', id);
+
+      if (dbError) throw dbError;
+
+      showToast('Audio file deleted successfully', 'success');
+
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+    } catch (error) {
+      showToast('Failed to delete audio file', 'error');
+      console.error('Error deleting audio file:', error);
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -82,6 +130,20 @@ export function AudioDetail() {
         <audio controls className={styles.player} src={audioFile.file_url}>
           Your browser does not support the audio element.
         </audio>
+        {user && user.id === audioFile.uploaded_by && (
+          <div className={styles.actionButtons}>
+            <Link to={`/audio/${id}/edit`} className="btn btn-primary">
+              Edit
+            </Link>
+            <button 
+              onClick={handleDelete} 
+              disabled={deleting}
+              className="btn btn-danger"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
