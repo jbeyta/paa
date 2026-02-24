@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase, type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/supabase';
+import { getAudioFiles, type AudioFilesResponse } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './Home.module.scss';
@@ -25,18 +26,9 @@ export function Home() {
   const fetchAudioFiles = async () => {
     setLoading(true);
     try {
-      const from = (page - 1) * pageSize;
-      const to = page * pageSize - 1;
-
-      const { data, error, count } = await supabase
-        .from('audio_files')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) throw error;
+      const { data, totalCount }: AudioFilesResponse = await getAudioFiles(page, pageSize);
       setAudioFiles(data || []);
-      setTotalCount(count || 0);
+      setTotalCount(totalCount || 0);
     } catch (error) {
       showToast('Failed to load audio files', 'error');
       console.error('Error fetching audio files:', error);
@@ -73,7 +65,6 @@ export function Home() {
     <div className={styles.container}>
       {audioFiles.length === 0 ? (
         <div className={styles.empty}>
-          <div className={styles.emptyIcon}>🎧</div>
           <p className={styles.emptyTitle}>No files found</p>
           <p className={styles.emptyText}>The archive is currently empty.</p>
           {user && (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase, type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/supabase';
+import { getAudioFile, deleteAudioFile } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './AudioDetail.module.scss';
@@ -22,13 +23,7 @@ export function AudioDetail() {
 
   const fetchAudioFile = async (fileId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('audio_files')
-        .select('*')
-        .eq('id', fileId)
-        .single();
-
-      if (error) throw error;
+      const data = await getAudioFile(fileId);
       setAudioFile(data);
     } catch (error) {
       showToast('Failed to load audio file', 'error');
@@ -63,27 +58,7 @@ export function AudioDetail() {
     setDeleting(true);
 
     try {
-      // Extract filename from file_url
-      const url = new URL(audioFile.file_url);
-      const pathParts = url.pathname.split('/');
-      const fileName = pathParts[pathParts.length - 1];
-
-      // Delete from storage first
-      const { error: storageError } = await supabase.storage
-        .from('audio')
-        .remove([fileName]);
-
-      if (storageError) {
-        throw new Error('Failed to delete file from storage');
-      }
-
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('audio_files')
-        .delete()
-        .eq('id', id);
-
-      if (dbError) throw dbError;
+      await deleteAudioFile(id);
 
       showToast('Audio file deleted successfully', 'success');
 

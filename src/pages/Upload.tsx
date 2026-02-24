@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import type { DragEvent, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getUploadUrl, uploadFileToS3, createAudioFile } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './Upload.module.scss';
@@ -91,31 +91,19 @@ export function Upload() {
     setUploading(true);
 
     try {
-      // Upload file to Supabase Storage
-      const fileName = file.name;
-      const { error: uploadError } = await supabase.storage
-        .from('audio')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      // 1. Get presigned URL from API
+      const { uploadUrl, fileUrl } = await getUploadUrl(file.name, file.type);
 
-      if (uploadError) throw uploadError;
+      // 2. Upload file directly to S3
+      await uploadFileToS3(uploadUrl, file);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('audio')
-        .getPublicUrl(fileName);
-
-      // Insert metadata into database
-      const { error: dbError } = await supabase.from('audio_files').insert({
+      // 3. Save metadata via API
+      await createAudioFile({
         title,
-        file_url: urlData.publicUrl,
+        file_url: fileUrl,
         duration,
         uploaded_by: user.id,
       });
-
-      if (dbError) throw dbError;
 
       showToast('Audio file uploaded successfully!', 'success');
       navigate('/');

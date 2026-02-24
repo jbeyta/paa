@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FormEvent, ChangeEvent, DragEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase, type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/supabase';
+import { getAudioFile, updateAudioFile, getUploadUrl, uploadFileToS3 } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import styles from './Edit.module.scss';
 
@@ -28,14 +29,7 @@ export function Edit() {
     if (!id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('audio_files')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      
+      const data = await getAudioFile(id);
       setAudioFile(data);
       setTitle(data.title);
     } catch (error) {
@@ -125,43 +119,19 @@ export function Edit() {
 
       // If new file is selected, handle file replacement
       if (newFile && newDuration !== null) {
-        // Upload new file
-        const fileName = newFile.name;
-        const { error: uploadError } = await supabase.storage
-          .from('audio')
-          .upload(fileName, newFile, {
-            cacheControl: '3600',
-            upsert: false,
-          });
+        // 1. Get presigned URL from API
+        const { uploadUrl, fileUrl } = await getUploadUrl(newFile.name, newFile.type);
 
-        if (uploadError) throw uploadError;
+        // 2. Upload new file directly to S3
+        await uploadFileToS3(uploadUrl, newFile);
 
-        // Get public URL for new file
-        const { data: urlData } = supabase.storage
-          .from('audio')
-          .getPublicUrl(fileName);
-
-        // Delete old file from storage
-        const oldUrl = new URL(audioFile.file_url);
-        const oldPathParts = oldUrl.pathname.split('/');
-        const oldFileName = oldPathParts[oldPathParts.length - 1];
-
-        await supabase.storage
-          .from('audio')
-          .remove([oldFileName]);
-
-        // Update data with new file info
-        updateData.file_url = urlData.publicUrl;
+        // Update data with new file info (old file cleanup handled server-side)
+        updateData.file_url = fileUrl;
         updateData.duration = newDuration;
       }
 
-      // Update database
-      const { error } = await supabase
-        .from('audio_files')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
+      // Update via API
+      await updateAudioFile(id, updateData);
 
       showToast('Audio file updated successfully!', 'success');
       
