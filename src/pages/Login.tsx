@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { signIn } from '../lib/auth';
+import type { CognitoUser } from 'amazon-cognito-identity-js';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './Login.module.scss';
 
 export function Login() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [pendingUser, setPendingUser] = useState<CognitoUser | null>(null);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   if (user) {
     navigate('/upload');
     return null;
@@ -21,41 +24,91 @@ export function Login() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      showToast('Please enter your email', 'error');
+
+    if (!email || !password) {
+      showToast('Please enter your email and password', 'error');
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/upload`,
-        },
-      });
-
-      if (error) throw error;
-
-      showToast('Check your email for the login link!', 'success');
-      setEmail('');
-    } catch (error) {
-      showToast('Failed to send login link', 'error');
-      console.error('Error sending magic link:', error);
+      await signIn(email, password);
+      await refreshUser();
+      navigate('/upload');
+    } catch (err: unknown) {
+      const error = err as { code?: string; user?: CognitoUser; message?: string };
+      if (error.code === 'NEW_PASSWORD_REQUIRED' && error.user) {
+        setPendingUser(error.user);
+      } else {
+        showToast(error.message ?? 'Sign in failed', 'error');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleNewPassword = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!newPassword || !pendingUser) return;
+
+    setLoading(true);
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        pendingUser.completeNewPasswordChallenge(newPassword, {}, {
+          onSuccess: () => resolve(),
+          onFailure: (err) => reject(err),
+        });
+      });
+      await refreshUser();
+      navigate('/upload');
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      showToast(error.message ?? 'Failed to set new password', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (pendingUser) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>Set New Password</h1>
+          <p className={styles.description}>
+            A new password is required for your account.
+          </p>
+          <form onSubmit={handleNewPassword} className={styles.form}>
+            <div className={styles.field}>
+              <label htmlFor="newPassword" className={styles.label}>
+                New Password
+              </label>
+              <input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className={styles.input}
+                disabled={loading}
+                required
+                autoFocus
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Saving...' : 'Set Password'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Sign In</h1>
-        <p className={styles.description}>
-          Enter your email to receive a magic link for sign in.
-        </p>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="email" className={styles.label}>
@@ -72,12 +125,22 @@ export function Login() {
               required
             />
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? 'Sending...' : 'Send Magic Link'}
+          <div className={styles.field}>
+            <label htmlFor="password" className={styles.label}>
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              disabled={loading}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>

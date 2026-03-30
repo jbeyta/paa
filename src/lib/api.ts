@@ -1,11 +1,43 @@
-import type { AudioFile } from './supabase';
+import { getCurrentSession } from './auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// ── Types ───────────────────────────────────────────────────────────────────
+
+export type AudioFile = {
+  id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  duration: number;
+  created_at: string;
+  uploaded_by: string | null;
+};
+
+export interface Comment {
+  id: string;
+  audio_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+}
+
+// ── Auth header ─────────────────────────────────────────────────────────────
+
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const session = await getCurrentSession();
+  if (!session) return {};
+  return { Authorization: `Bearer ${session.getIdToken().getJwtToken()}` };
+}
+
+// ── Core fetch ───────────────────────────────────────────────────────────────
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const authHeader = await getAuthHeader();
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
       ...options?.headers,
     },
     ...options,
@@ -50,7 +82,7 @@ export async function createAudioFile(body: {
 
 export async function updateAudioFile(
   id: string,
-  body: { title: string; file_url?: string; duration?: number }
+  body: { title: string; description?: string }
 ): Promise<AudioFile> {
   return apiFetch<AudioFile>(`/audio/${id}`, {
     method: 'PUT',
@@ -59,14 +91,7 @@ export async function updateAudioFile(
 }
 
 export async function deleteAudioFile(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/audio/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${await response.text()}`);
-  }
+  return apiFetch<void>(`/audio/${id}`, { method: 'DELETE' });
 }
 
 // ── Upload ──────────────────────────────────────────────────────────────────
@@ -124,13 +149,50 @@ export async function removeReaction(
   audioId: string,
   body: { user_id: string }
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/audio/${audioId}/reactions`, {
+  return apiFetch<void>(`/audio/${audioId}/reactions`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
 
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${await response.text()}`);
-  }
+// ── Tags ────────────────────────────────────────────────────────────────────
+
+export async function getTags(audioId: string): Promise<string[]> {
+  return apiFetch<string[]>(`/audio/${audioId}/tags`);
+}
+
+export async function addTag(
+  audioId: string,
+  body: { name: string }
+): Promise<void> {
+  return apiFetch<void>(`/audio/${audioId}/tags`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteTag(
+  audioId: string,
+  body: { name: string }
+): Promise<void> {
+  return apiFetch<void>(`/audio/${audioId}/tags`, {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Comments ─────────────────────────────────────────────────────────────────
+
+export async function getComments(audioId: string): Promise<Comment[]> {
+  return apiFetch<Comment[]>(`/audio/${audioId}/comments`);
+}
+
+export async function addComment(
+  audioId: string,
+  body: { user_id: string; content: string }
+): Promise<Comment> {
+  return apiFetch<Comment>(`/audio/${audioId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }

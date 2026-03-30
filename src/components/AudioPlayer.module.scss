@@ -1,0 +1,187 @@
+.player {
+  padding: 2rem 0 1.75rem;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 0;
+}
+
+// ─── Expanded layout ───────────────────────────────────────────────────────────
+
+.expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.isSticky .expanded {
+  visibility: hidden;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #2a2a2a;
+  text-align: center;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.playBtn {
+  background: none;
+  border: 2px solid #2a2a2a;
+  color: #2a2a2a;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  svg {
+    display: block;
+    // Optical offset for play triangle
+    &:first-child:not(:last-child) {
+      transform: translateX(1px);
+    }
+  }
+
+  &:hover:not(:disabled) {
+    background: #2a2a2a;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.scrubRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.time {
+  font-size: 0.7rem;
+  color: #888;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.8ch;
+  letter-spacing: 0.02em;
+}
+
+// Spotify-style filled scrub bar
+.scrubBar {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    #2a2a2a 0%,
+    #2a2a2a var(--progress, 0%),
+    #d8d8d8 var(--progress, 0%),
+    #d8d8d8 100%
+  );
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    border: none;
+    cursor: pointer;
+  }
+
+  &::-moz-range-track {
+    height: 4px;
+    background: transparent;
+    border: none;
+  }
+}
+
+// ─── Compact sticky layout ─────────────────────────────────────────────────────
+
+.compact {
+  display: none;
+}
+
+.isSticky .compact {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  padding: 0.75rem 2rem;
+}
+
+.compactTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2a2a2a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+// ─── Responsive ────────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .player {
+    padding: 1.5rem 0 1.25rem;
+  }
+
+  .title {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .expanded {
+    gap: 1rem;
+  }
+
+  .isSticky .compact {
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .compactTitle {
+    max-width: 110px;
+    font-size: 0.8rem;
+  }
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FormEvent, ChangeEvent, DragEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/api';
 import { getAudioFile, updateAudioFile, getUploadUrl, uploadFileToS3 } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import styles from './Edit.module.scss';

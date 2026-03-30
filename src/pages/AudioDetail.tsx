@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/api';
 import { getAudioFile, deleteAudioFile } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';

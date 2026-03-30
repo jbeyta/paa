@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { type AudioFile } from '../lib/supabase';
+import { type AudioFile } from '../lib/api';
 import { getAudioFiles, type AudioFilesResponse } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { AudioPlayer } from '../components/AudioPlayer';
 import styles from './Home.module.scss';
 
 export function Home() {
@@ -15,13 +16,26 @@ export function Home() {
     return saved ? Number(saved) : 10;
   });
   const [totalCount, setTotalCount] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<AudioFile | null>(null);
+  const [isPlayerSticky, setIsPlayerSticky] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const { showToast } = useToast();
   const { user } = useAuth();
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     fetchAudioFiles();
   }, [page, pageSize]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsPlayerSticky(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const fetchAudioFiles = async () => {
     setLoading(true);
@@ -46,24 +60,17 @@ export function Home() {
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     localStorage.setItem('audioPageSize', String(newSize));
-    setPage(1); // Reset to first page when changing page size
+    setPage(1);
   };
-
-  const handleAudioPlay = (e: React.SyntheticEvent<HTMLAudioElement>) => {
-    if (currentAudioRef.current && currentAudioRef.current !== e.currentTarget) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.currentTime = 0;
-    }
-    currentAudioRef.current = e.currentTarget;
-  };
-
-  if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
 
   return (
     <div className={styles.container}>
-      {audioFiles.length === 0 ? (
+      <div ref={sentinelRef} />
+      <AudioPlayer file={selectedFile} isSticky={isPlayerSticky} />
+
+      {loading ? (
+        <div className={styles.loading}>Loading...</div>
+      ) : audioFiles.length === 0 ? (
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>No files found</p>
           <p className={styles.emptyText}>The archive is currently empty.</p>
@@ -76,18 +83,16 @@ export function Home() {
       ) : (
         <div className={styles.list}>
           {audioFiles.map((file) => (
-            <div key={file.id} className={styles.item}>
-              <Link to={`/audio/${file.id}`} className={styles.name}>
-                {file.title}
-              </Link>
-              <audio 
-                controls 
-                className={styles.player} 
-                src={file.file_url}
-                onPlay={handleAudioPlay}
+            <div
+              key={file.id}
+              className={`${styles.item} ${selectedFile?.id === file.id ? styles.active : ''}`}
+            >
+              <button
+                className={styles.name}
+                onClick={() => setSelectedFile(file)}
               >
-                Your browser does not support the audio element.
-              </audio>
+                {file.title}
+              </button>
             </div>
           ))}
         </div>

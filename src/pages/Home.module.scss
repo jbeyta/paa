@@ -53,15 +53,20 @@
 }
 
 .item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 2rem;
-  align-items: center;
-  padding: 1rem 0;
+  display: block;
   border-bottom: 1px solid #e0e0e0;
-  
+
   &:first-child {
     border-top: 1px solid #e0e0e0;
+  }
+
+  &.active .name {
+    font-weight: 600;
+  }
+
+  &.active {
+    border-left: 2px solid #2a2a2a;
+    padding-left: 0.75rem;
   }
 }
 
@@ -69,31 +74,26 @@
   font-size: 1rem;
   font-weight: 400;
   color: #2a2a2a;
-  text-decoration: none;
-  
+  background: none;
+  border: none;
+  padding: 0.9rem 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: inherit;
+  outline: none;
+
+  &:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   &:hover {
     color: #999;
   }
 }
 
-.duration {
-  color: #666;
-  font-size: 0.875rem;
-  white-space: nowrap;
-}
-
-.player {
-  width: 200px;
-  height: 32px;
-  
-  &::-webkit-media-controls-overflow-button {
-    display: none;
-  }
-  
-  &::-webkit-media-controls-enclosure {
-    overflow: hidden;
-  }
-}
 
 .pagination {
   display: grid;
@@ -156,14 +156,10 @@
   }
   
   .item {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
   }
-  
-  .player {
-    width: 100%;
-  }
-  
+
   .pagination {
     grid-template-columns: 1fr;
     gap: 1rem;
