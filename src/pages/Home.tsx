@@ -85,7 +85,7 @@ export function Home() {
           {audioFiles.map((file) => (
             <div
               key={file.id}
-              className={`${styles.item} ${selectedFile?.id === file.id ? styles.active : ''}`}
+              className={`${styles.item} ${selectedFile?.id === file.id ? styles.itemActive : ''}`}
             >
               <button
                 className={styles.name}

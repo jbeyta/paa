@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import WaveSurfer from 'wavesurfer.js';
 import { type AudioFile } from '../lib/api';
 import styles from './AudioPlayer.module.scss';
 
@@ -32,63 +33,75 @@ function PauseIcon() {
 }
 
 export function AudioPlayer({ file, isSticky }: AudioPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const waveformRef = useRef<HTMLDivElement>(null);
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const isSeeking = useRef(false);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.pause();
+    if (!waveformRef.current) return;
+
+    wavesurferRef.current?.destroy();
+    setIsReady(false);
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
+
+    const mediaEl = document.createElement('audio');
+    mediaEl.crossOrigin = 'anonymous';
+
+    const ws = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: '#d8d8d8',
+      progressColor: '#2a2a2a',
+      cursorColor: '#2a2a2a',
+      barWidth: 2,
+      barGap: 1,
+      barRadius: 2,
+      height: 64,
+      normalize: true,
+      media: mediaEl,
+      fetchParams: { mode: 'cors' },
+    });
+
     if (file) {
-      audio.src = file.file_url;
-      audio.load();
-    } else {
-      audio.removeAttribute('src');
+      ws.load(file.file_url);
     }
+
+    ws.on('ready', () => {
+      setIsReady(true);
+      setDuration(ws.getDuration());
+    });
+    ws.on('play', () => setIsPlaying(true));
+    ws.on('pause', () => setIsPlaying(false));
+    ws.on('finish', () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    });
+    ws.on('timeupdate', (time) => setCurrentTime(time));
+
+    wavesurferRef.current = ws;
+
+    return () => {
+      ws.destroy();
+      wavesurferRef.current = null;
+    };
   }, [file]);
 
   const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio || !file) return;
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (isSeeking.current) return;
-    setCurrentTime(audioRef.current?.currentTime ?? 0);
-  };
-
-  const handleLoadedMetadata = () => {
-    setDuration(audioRef.current?.duration ?? 0);
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-    setCurrentTime(0);
-    if (audioRef.current) audioRef.current.currentTime = 0;
+    wavesurferRef.current?.playPause();
   };
 
   const handleScrubChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (audioRef.current) audioRef.current.currentTime = value;
+    if (duration > 0) wavesurferRef.current?.seekTo(value / duration);
     setCurrentTime(value);
   };
 
-  const handleScrubStart = () => { isSeeking.current = true; };
-  const handleScrubEnd = () => { isSeeking.current = false; };
-
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const scrubProps = {
+  const compactScrubProps = {
     type: 'range' as const,
     className: styles.scrubBar,
     style: { '--progress': `${progress}%` } as React.CSSProperties,
@@ -97,25 +110,12 @@ export function AudioPlayer({ file, isSticky }: AudioPlayerProps) {
     step: 0.1,
     value: currentTime,
     onChange: handleScrubChange,
-    onMouseDown: handleScrubStart,
-    onMouseUp: handleScrubEnd,
-    onTouchStart: handleScrubStart,
-    onTouchEnd: handleScrubEnd,
-    disabled: !file,
+    disabled: !isReady,
     'aria-label': 'Seek',
   };
 
   return (
     <div className={`${styles.player} ${isSticky ? styles.isSticky : ''}`}>
-      <audio
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={handleEnded}
-      />
-
       {/* Expanded layout — always in document flow for spacing */}
       <div className={styles.expanded}>
         <p className={styles.title}>
@@ -124,14 +124,14 @@ export function AudioPlayer({ file, isSticky }: AudioPlayerProps) {
         <button
           className={styles.playBtn}
           onClick={togglePlayPause}
-          disabled={!file}
+          disabled={!isReady}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}
         </button>
-        <div className={styles.scrubRow}>
+        <div className={styles.waveformRow}>
           <span className={styles.time}>{formatTime(currentTime)}</span>
-          <input {...scrubProps} />
+          <div ref={waveformRef} className={styles.waveform} />
           <span className={styles.time}>{formatTime(duration)}</span>
         </div>
       </div>
@@ -142,13 +142,13 @@ export function AudioPlayer({ file, isSticky }: AudioPlayerProps) {
         <button
           className={styles.playBtn}
           onClick={togglePlayPause}
-          disabled={!file}
+          disabled={!isReady}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}
         </button>
         <span className={styles.time}>{formatTime(currentTime)}</span>
-        <input {...scrubProps} />
+        <input {...compactScrubProps} />
         <span className={styles.time}>{formatTime(duration)}</span>
       </div>
     </div>

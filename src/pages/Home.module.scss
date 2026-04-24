@@ -55,19 +55,26 @@
 .item {
   display: block;
   border-bottom: 1px solid #e0e0e0;
+  border-left: 2px solid transparent;
+  padding-left: 0;
+  background-color: transparent;
+  transform: translateX(0);
+  transition: border-left-color 0.3s ease, padding-left 0.3s ease, background-color 0.3s ease;
 
   &:first-child {
     border-top: 1px solid #e0e0e0;
   }
+}
 
-  &.active .name {
-    font-weight: 600;
-  }
+.itemActive {
+  border-left-color: #2a2a2a;
+  padding-left: 0.75rem;
+  background-color: #f7f7f7;
+}
 
-  &.active {
-    border-left: 2px solid #2a2a2a;
-    padding-left: 0.75rem;
-  }
+.itemActive .name {
+  font-weight: 600;
+  color: #1e1e1e;
 }
 
 .name {
@@ -83,10 +90,10 @@
   font-family: inherit;
   letter-spacing: inherit;
   outline: none;
+  transition: color 0.3s ease;
 
   &:focus-visible {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    outline: none;
   }
 
   &:hover {
