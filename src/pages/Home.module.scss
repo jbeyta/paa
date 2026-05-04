@@ -53,7 +53,8 @@
 }
 
 .item {
-  display: block;
+  display: flex;
+  align-items: center;
   border-bottom: 1px solid #e0e0e0;
   border-left: 2px solid transparent;
   padding-left: 0;
@@ -63,6 +64,20 @@
 
   &:first-child {
     border-top: 1px solid #e0e0e0;
+  }
+}
+
+.shareLink {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  color: #bbb;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #2a2a2a;
   }
 }
 

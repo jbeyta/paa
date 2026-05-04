@@ -85,6 +85,9 @@ export function AudioPlayer({ file, isSticky }: AudioPlayerProps) {
     wavesurferRef.current = ws;
 
     return () => {
+      ws.pause();
+      mediaEl.pause();
+      mediaEl.src = '';
       ws.destroy();
       wavesurferRef.current = null;
     };
